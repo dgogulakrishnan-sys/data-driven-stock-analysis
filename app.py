@@ -7,18 +7,12 @@ import streamlit as st
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-# ===============================
-# CONFIG PATHS
-# ===============================
+
 RAW_DATA = r"D:\PROJECTS\DATA_DRIVEN_STOCK_ANALYSIS\data\raw_yaml"
 CSV_DATA = r"D:\PROJECTS\DATA_DRIVEN_STOCK_ANALYSIS\data\processed_csv"
 SECTOR_CSV = r"D:\PROJECTS\DATA_DRIVEN_STOCK_ANALYSIS\data\sector.csv"
 DB_URL = "mysql+mysqlconnector://root:BanuD8695@localhost:3306/data_driven_stock_analysis"
 
-
-# ===============================
-# YAML → CSV
-# ===============================
 def convert_yaml_to_csv(raw_data_path, csv_output_path, ticker_key="Ticker"):
     os.makedirs(csv_output_path, exist_ok=True)
     symbol_data = {}
@@ -45,10 +39,6 @@ def convert_yaml_to_csv(raw_data_path, csv_output_path, ticker_key="Ticker"):
 
     return len(symbol_data)
 
-
-# ===============================
-# CSV → MYSQL
-# ===============================
 def load_csv_to_mysql(csv_path, db_url, table_name="stock_prices"):
     engine = create_engine(db_url)
 
@@ -64,10 +54,6 @@ def load_csv_to_mysql(csv_path, db_url, table_name="stock_prices"):
 
     print("All CSV files loaded into MySQL")
 
-
-# ===============================
-# FETCH SECTOR DATA
-# ===============================
 @st.cache_data(show_spinner=True)
 def fetch_and_save_sector_data(csv_path, sector_csv_path):
 
@@ -96,10 +82,6 @@ def fetch_and_save_sector_data(csv_path, sector_csv_path):
 
     return df
 
-
-# ===============================
-# LOAD STOCK DATA
-# ===============================
 @st.cache_data(show_spinner=True)
 def load_stock_data(csv_path):
     frames = []
@@ -115,9 +97,6 @@ def load_stock_data(csv_path):
 
     return pd.concat(frames, ignore_index=True)
 
-# ===============================
-# ANALYTICS FUNCTIONS
-# ===============================
 @st.cache_data
 def calculate_yearly_returns(stocks_df):
     return (
@@ -211,9 +190,6 @@ def calculate_monthly_gainers_losers(monthly_df, selected_month, top_n=10):
 
     return gainers, losers
 
-# ===============================
-# STREAMLIT APP
-# ===============================
 st.set_page_config("Stock Dashboard", layout="wide")
 
 st.title("DATA_DRIVEN STOCK ANALYSIS")
