@@ -1,0 +1,17 @@
+relationship 80a8e272-7103-417d-bc4c-e1323b5e9825
+	joinOnDateBehavior: datePartOnly
+	fromColumn: DateTable.date
+	toColumn: LocalDateTable_742f7955-184c-4c71-9948-c9f368ea6c6a.Date
+
+relationship 9cdc2ee3-7fea-e371-c66d-55578e9aa8f4
+	fromColumn: stock_prices.date
+	toColumn: DateTable.date
+
+relationship 4b54076b-f9dc-412e-f66c-33a229529e57
+	fromColumn: stock_prices.ticker
+	toColumn: stock_sectors.ticker
+
+relationship 0683845d-317e-4cc4-1d9f-bdd3eafb8048
+	fromColumn: stock_prices.ticker
+	toColumn: TickerTable.ticker
+

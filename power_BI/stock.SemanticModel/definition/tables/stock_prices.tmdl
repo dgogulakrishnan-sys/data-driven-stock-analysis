@@ -1,0 +1,265 @@
+table stock_prices
+	lineageTag: d58783da-eeac-4e22-8d55-a9aa6848e293
+
+	measure 'Daily Return' = ```
+			
+			VAR CurrentClose =
+			    MAX ( stock_prices[close] )
+			VAR PrevClose =
+			    CALCULATE (
+			        MAX ( stock_prices[close] ),
+			        FILTER (
+			            ALLEXCEPT ( stock_prices, stock_prices[ticker] ),
+			            stock_prices[date] = MAX ( stock_prices[date] ) - 1
+			        )
+			    )
+			RETURN
+			    IF (
+			        NOT ISBLANK ( PrevClose ),
+			        DIVIDE ( CurrentClose - PrevClose, PrevClose )
+			    )
+			
+			```
+		lineageTag: db61c051-1962-496a-9b0c-532214267ef1
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Yearly Return' =
+			
+			CALCULATE (
+			    PRODUCTX (
+			        stock_prices,
+			        1 + [Daily Return]
+			    )
+			) - 1
+		lineageTag: 267c879e-31b6-456c-b60f-a848385ec7de
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Green Stocks' = ```
+			
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( stock_prices[ticker] ),
+			        [Yearly Return] > 0
+			    )
+			)
+			
+			```
+		formatString: 0
+		lineageTag: c5c82ef3-5cbb-4a16-8334-54a8e769d4eb
+
+	measure 'Red Stocks' = ```
+			
+			COUNTROWS (
+			    FILTER (
+			        VALUES ( stock_prices[ticker] ),
+			        [Yearly Return] <= 0
+			    )
+			)
+			
+			
+			```
+		formatString: 0
+		lineageTag: aba0c92b-4d17-459c-b01f-b5668c8320c4
+
+	measure 'Average Price' = ```
+			
+			AVERAGE ( stock_prices[close] )
+			
+			```
+		lineageTag: 9cfbcbb5-ce62-4eb2-bc90-c9480fa9e848
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Average Volume' = ```
+			
+			AVERAGE ( stock_prices[volume] )
+			
+			```
+		lineageTag: c8bbf264-753a-41b7-9177-0b057f44b164
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure Volatility = ```
+			
+			STDEVX.P (
+			    VALUES ( DateTable[date] ),
+			    [Daily Return]
+			)
+			
+			```
+		lineageTag: 92e4817b-89cc-4405-9c7e-8c733eda468c
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Cumulative Return' = ```
+			
+			VAR StartValue =
+			    CALCULATE ( [Daily Return], ALL ( DateTable ) )
+			RETURN
+			    PRODUCTX (
+			        FILTER (
+			            ALL ( DateTable ),
+			            DateTable[date] <= MAX ( DateTable[date] )
+			        ),
+			        1 + [Daily Return]
+			    )
+			
+			```
+		lineageTag: b83c2f68-1f9d-40a5-a341-75536546edaa
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Monthly Return' = ```
+			
+			VAR FirstClose =
+			    CALCULATE (
+			        FIRSTNONBLANK ( stock_prices[close], 1 ),
+			        ALLEXCEPT ( DateTable, DateTable[MonthYear] )
+			    )
+			VAR LastClose =
+			    CALCULATE (
+			        LASTNONBLANK ( stock_prices[close], 1 ),
+			        ALLEXCEPT ( DateTable, DateTable[MonthYear] )
+			    )
+			RETURN
+			    DIVIDE ( LastClose - FirstClose, FirstClose ) * 100
+			
+			```
+		lineageTag: f5ca4cf0-a935-40e0-8b7c-a83b44baf4f6
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	measure 'Total Stocks' = DISTINCTCOUNT(stock_prices[ticker])
+		formatString: 0
+		lineageTag: 71cc7d63-2257-433a-b4ee-cf082f30290c
+
+	measure Correlation =
+			
+			VAR StockX =
+			    SELECTEDVALUE(TickerTable[Ticker])
+			
+			VAR StockY =
+			    SELECTEDVALUE(TickerTable[Ticker])
+			
+			VAR DataXY =
+			    ADDCOLUMNS(
+			        SUMMARIZE(
+			            stock_prices,
+			            stock_prices[date]
+			        ),
+			        "X",
+			            CALCULATE(
+			                [Daily Return],
+			                TickerTable[Ticker] = StockX
+			            ),
+			        "Y",
+			            CALCULATE(
+			                [Daily Return],
+			                TickerTable[Ticker] = StockY
+			            )
+			    )
+			
+			VAR AvgX = AVERAGEX(DataXY, [X])
+			VAR AvgY = AVERAGEX(DataXY, [Y])
+			
+			VAR Numerator =
+			    SUMX(
+			        DataXY,
+			        ([X] - AvgX) * ([Y] - AvgY)
+			    )
+			
+			VAR Denominator =
+			    SQRT(
+			        SUMX(DataXY, POWER([X] - AvgX, 2)) *
+			        SUMX(DataXY, POWER([Y] - AvgY, 2))
+			    )
+			
+			RETURN
+			DIVIDE(Numerator, Denominator)
+		lineageTag: 549e1dd0-ee8e-480c-ad89-dfbefdf19b55
+		dataCategory: Uncategorized
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column ticker
+		dataType: string
+		lineageTag: d7ccea07-af16-40e7-8c57-64001342b3e1
+		summarizeBy: none
+		sourceColumn: ticker
+
+		annotation SummarizationSetBy = Automatic
+
+	column date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: a18ca252-dea0-4615-a883-7557a21186ac
+		summarizeBy: none
+		sourceColumn: date
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column open
+		dataType: double
+		lineageTag: 021fc31c-8657-4771-9b41-f78721504b90
+		summarizeBy: none
+		sourceColumn: open
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column high
+		dataType: double
+		lineageTag: a3267a24-5a00-4071-a959-c94b5c8aaa23
+		summarizeBy: none
+		sourceColumn: high
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column low
+		dataType: double
+		lineageTag: 440976e8-7aff-4573-a01b-b34681f60e52
+		summarizeBy: none
+		sourceColumn: low
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column close
+		dataType: double
+		lineageTag: 75cf23a8-ab88-4a18-b88b-a8a35ae85f18
+		summarizeBy: none
+		sourceColumn: close
+
+		annotation SummarizationSetBy = User
+
+		annotation PBI_FormatHint = {"isGeneralNumber":true}
+
+	column volume
+		dataType: int64
+		formatString: 0
+		lineageTag: de98b57a-f0b3-45f6-b54a-fd86ae2db024
+		summarizeBy: sum
+		sourceColumn: volume
+
+		annotation SummarizationSetBy = Automatic
+
+	partition stock_prices = m
+		mode: import
+		source =
+				let
+				    Source = MySQL.Database("localhost", "data_driven_stock_analysis", [ReturnSingleDatabase=true]),
+				    data_driven_stock_analysis_stock_prices = Source{[Schema="data_driven_stock_analysis",Item="stock_prices"]}[Data],
+				    #"Removed Columns" = Table.RemoveColumns(data_driven_stock_analysis_stock_prices,{"id", "month"})
+				in
+				    #"Removed Columns"
+
+	changedProperty = Name
+

@@ -1,0 +1,30 @@
+table stock_sectors
+	lineageTag: dd9fdee5-e625-489a-ae0f-79ad18efc051
+
+	column ticker
+		dataType: string
+		lineageTag: 8b14a591-2347-4372-9c87-632483ae6840
+		summarizeBy: none
+		sourceColumn: ticker
+
+		annotation SummarizationSetBy = Automatic
+
+	column sector
+		dataType: string
+		lineageTag: 6fb728bc-59dd-44cd-ad13-4b43c25bfbb2
+		summarizeBy: none
+		sourceColumn: sector
+
+		annotation SummarizationSetBy = Automatic
+
+	partition stock_sectors = m
+		mode: import
+		source =
+				let
+				    Source = MySQL.Database("localhost", "data_driven_stock_analysis", [ReturnSingleDatabase=true]),
+				    data_driven_stock_analysis_stock_sectors = Source{[Schema="data_driven_stock_analysis",Item="stock_sectors"]}[Data]
+				in
+				    data_driven_stock_analysis_stock_sectors
+
+	changedProperty = Name
+

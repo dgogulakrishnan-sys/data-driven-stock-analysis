@@ -1,0 +1,21 @@
+table TickerTable
+	lineageTag: c9c799f7-543d-49d6-b665-4516f73ae6aa
+
+	column ticker
+		lineageTag: 68060ce9-8ad8-459c-b784-63b7527737eb
+		summarizeBy: none
+		isNameInferred
+		sourceColumn: stock_prices[ticker]
+
+		annotation SummarizationSetBy = Automatic
+
+	partition TickerTable = calculated
+		mode: import
+		source = ```
+				
+				DISTINCT(stock_prices[Ticker])
+				
+				```
+
+	annotation PBI_Id = a74f3a6cb9fc47f087797aa51bdd1797
+

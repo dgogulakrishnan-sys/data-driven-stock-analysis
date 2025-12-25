@@ -1,0 +1,31 @@
+model Model
+	culture: en-US
+	defaultPowerBIDataSourceVersion: powerBI_V3
+	sourceQueryCulture: en-IN
+	dataAccessOptions
+		legacyRedirects
+		returnErrorValuesAsNull
+
+queryGroup 'Transform File from processed_csv'
+
+	annotation PBI_QueryGroupOrder = 0
+
+queryGroup 'Transform File from processed_csv\Helper Queries'
+
+	annotation PBI_QueryGroupOrder = 0
+
+annotation __PBI_TimeIntelligenceEnabled = 1
+
+annotation PBI_QueryOrder = ["Sample File","Parameter1","Transform Sample File","Transform File","stock_prices","stock_sectors"]
+
+annotation PBI_ProTooling = ["DevMode"]
+
+ref table stock_prices
+ref table DateTableTemplate_5220d09f-cde0-4e5f-9130-daeefaffa37f
+ref table stock_sectors
+ref table DateTable
+ref table LocalDateTable_742f7955-184c-4c71-9948-c9f368ea6c6a
+ref table TickerTable
+
+ref cultureInfo en-US
+

@@ -1,0 +1,43 @@
+expression Parameter1 = #"Sample File" meta [IsParameterQuery=true, BinaryIdentifier=#"Sample File", Type="Binary", IsParameterQueryRequired=true]
+	lineageTag: 793d705d-2dcb-4f67-8035-e502cdb176ed
+	queryGroup: 'Transform File from processed_csv\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform Sample File' =
+		let
+		    Source = Csv.Document(Parameter1,[Delimiter=",", Columns=8, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+	lineageTag: c80b4b97-fad4-44ce-9669-35d56e5ff432
+	queryGroup: 'Transform File from processed_csv'
+
+	annotation PBI_ResultType = Table
+
+expression 'Sample File' =
+		let
+		    Source = Folder.Files("D:\PROJECTS\DATA_DRIVEN_STOCK_ANALYSIS\data\processed_csv"),
+		    Navigation1 = Source{0}[Content]
+		in
+		    Navigation1
+	lineageTag: a39fd2f6-a881-429f-82a2-7b7c9f4d518c
+	queryGroup: 'Transform File from processed_csv\Helper Queries'
+
+	annotation PBI_ResultType = Binary
+
+expression 'Transform File' =
+		let
+		    Source = (Parameter1 as binary) => let
+		    Source = Csv.Document(Parameter1,[Delimiter=",", Columns=8, Encoding=1252, QuoteStyle=QuoteStyle.None]),
+		    #"Promoted Headers" = Table.PromoteHeaders(Source, [PromoteAllScalars=true])
+		in
+		    #"Promoted Headers"
+		in
+		    Source
+	mAttributes: [ FunctionQueryBinding = "{""exemplarFormulaName"":""Transform Sample File""}" ]
+	lineageTag: f0604bd3-2021-4925-877b-049b6db09e65
+	queryGroup: 'Transform File from processed_csv\Helper Queries'
+
+	annotation PBI_ResultType = Function
+
